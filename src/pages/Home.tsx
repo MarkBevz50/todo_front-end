@@ -8,25 +8,27 @@ import {
   Button,
 } from '@mui/material';
 import Calendar from '../components/Calendar';
-import TaskForm from '../components/TaskForm'; // Import TaskForm
-import TaskCard from '../components/TaskCard'; // Import TaskCard
+import TaskForm from '../components/TaskForm'; 
+import TaskCard from '../components/TaskCard'; 
 import '../styles/main.scss';
-import type { Task } from '../hooks/useTasks'; // Import Task type using type-only import
+import type { Task } from '../hooks/useTasks'; 
+import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const { tasks, addTask, deleteTask, toggleTaskStatus } = useTasks(); // Add toggleTaskStatus
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2024, 4, 27)); // May 27, 2024
-  const [showTaskForm, setShowTaskForm] = useState(false); // State to control TaskForm visibility
+  const { tasks, addTask, deleteTask, toggleTaskStatus } = useTasks(); 
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2025, 5, 20)); 
+  const [showTaskForm, setShowTaskForm] = useState(false); 
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Added isAuthenticated state
 
   const handleAddTask = (taskData: Omit<Task, 'id' | 'completed'>) => {
     addTask(taskData);
-    setShowTaskForm(false); // Hide form after adding task
+    setShowTaskForm(false); 
   };
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     console.log('Selected date:', date);
-    // Можна додати логіку для фільтрування завдань за обраною датою
+    // todo: додати логіку для фільтрування завдань за обраною датою
   };
 
   return (
@@ -55,11 +57,10 @@ const Home: React.FC = () => {
         <Typography variant="h6" color="#2563eb" fontWeight="bold">
           FocusFlow
         </Typography>
-        <Box sx={{ display: 'flex', gap: 3 }}>
-          <Typography>Dashboard</Typography>
-          <Typography>Tasks</Typography>
-          <Typography>Calendar</Typography>
-          <Typography>Profile</Typography>
+        <Box sx={{ display: 'flex', gap: 2 }}> 
+          {isAuthenticated && <Button sx={{ color: '#333333' }}>Profile</Button>} {/* Conditionally render Profile button */}
+          <Button sx={{ color: '#333333' }}>About Us</Button> {/* Changed color */}
+          <Button component={Link} to="/signup" variant="outlined" color="primary">Sign Up</Button> 
         </Box>
       </Box>
 
@@ -82,7 +83,7 @@ const Home: React.FC = () => {
           </Box>
         </Paper>
 
-        {/* Button to show Task Form / Task Form itself */}
+      
         <Box sx={{ 
           mb: 3, 
           bgcolor: 'white', 
@@ -118,14 +119,14 @@ const Home: React.FC = () => {
                 <TaskCard 
                   key={task.id} 
                   task={task} 
-                  onDelete={deleteTask} // Corrected prop name
-                  onToggleComplete={toggleTaskStatus} // Corrected prop name
+                  onDelete={deleteTask} 
+                  onToggleComplete={toggleTaskStatus} 
                 />
               ))
             )}
           </Box>
           {/* Calendar Component Wrapper */}
-          <Box sx={{ flex: 1, maxWidth: '300px' }}> {/* Added flex: 1 and maxWidth */} 
+          <Box sx={{ flex: 1, maxWidth: '300px' }}> 
             <Calendar 
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
@@ -155,7 +156,7 @@ const Home: React.FC = () => {
         fontSize: '0.875rem',
         bgcolor: 'white'
       }}>
-        FocusFlow © 2024 • Built for your productivity
+        FocusFlow © 2024 • Built for your productivity by Markiyan Bevz ^_^
       </Box>
     </Box>
   );

@@ -16,6 +16,14 @@ const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onCancel }) => {
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
 
+  const getTodayDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -86,6 +94,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onCancel }) => {
             onChange={(e) => setDeadline(e.target.value)}
             InputLabelProps={{
               shrink: true,
+            }}
+            inputProps={{
+              min: getTodayDateString(), // Add min attribute
             }}
             fullWidth
             variant="outlined"
