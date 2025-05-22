@@ -31,6 +31,14 @@ const Home: React.FC = () => {
     // todo: додати логіку для фільтрування завдань за обраною датою
   };
 
+  const calendarEvents = tasks
+    .filter(task => task.deadline)
+    .map(task => ({
+      date: new Date(task.deadline!),
+      title: task.title,
+      color: task.completed ? '#4caf50' : '#f44336', // Example: green for completed, red for pending
+    }));
+
   return (
     <Box sx={{ 
       bgcolor: '#f6f8fb', 
@@ -130,18 +138,7 @@ const Home: React.FC = () => {
             <Calendar 
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
-              events={[
-                {
-                  date: new Date(2024, 4, 27),
-                  title: 'Deadline: Sprint Planning',
-                  color: '#2563eb'
-                },
-                {
-                  date: new Date(2024, 4, 29),
-                  title: 'Update Report',
-                  color: '#60a5fa'
-                }
-              ]}
+              events={calendarEvents}
             />
           </Box>
         </Box>

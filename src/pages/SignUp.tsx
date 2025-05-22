@@ -81,11 +81,11 @@ const SignUp: React.FC = () => {
           <Box textAlign="center">
             <Typography variant="body2">
               Already have an account?{' '}
-              {/* <Link to="/signin" style={{ color: '#2563eb', textDecoration: 'none' }}>
+              {/* <Link to="/login" style={{ color: '#2563eb', textDecoration: 'none' }}>
                 Sign In
               </Link> */}
               {/* Replace with your actual sign-in route */}
-               <Button component={Link} to="/signin" sx={{ color: '#2563eb', textTransform: 'none', padding: 0 }}>Sign In</Button>
+               <Button component={Link} to="/login" sx={{ color: '#2563eb', textTransform: 'none', padding: 0 }}>Sign In</Button>
             </Typography>
           </Box>
         </Box>
