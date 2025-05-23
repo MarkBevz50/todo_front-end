@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+
+const API_BASE_URL = 'http://localhost:5134/api';
 
 // Define and export the Task interface
 export interface Task {
@@ -7,41 +11,103 @@ export interface Task {
   description?: string;
   deadline?: string;
   completed: boolean;
+  userId?: string; // Optional: if your backend associates tasks with users
 }
 
 interface UseTasksResult {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'completed'>) => void;
-  deleteTask: (id: string) => void;
-  toggleTaskStatus: (id: string) => void;
+  addTask: (taskData: Omit<Task, 'id' | 'completed' | 'userId'>) => Promise<void>; // Modified to be async
+  deleteTask: (id: string) => Promise<void>; // Will be async
+  toggleTaskStatus: (id: string) => Promise<void>; // Will be async
+  fetchTasks: () => Promise<void>; // Added fetchTasks
+  loading: boolean;
+  error: string | null;
 }
 
 const useTasks = (): UseTasksResult => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const { token, isAuthenticated } = useAuth(); // Get token and isAuthenticated
 
-  // Додає нове завдання до списку
-  const addTask = (task: Omit<Task, 'id' | 'completed'>) => {
-    setTasks(prev => [
-      ...prev,
-      { ...task, id: Date.now().toString(), completed: false }
-    ]);
+  // Fetch tasks from backend
+  const fetchTasks = async () => {
+    if (!isAuthenticated || !token) {
+      setTasks([]); // Clear tasks if not authenticated
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/tasks`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      setTasks(response.data);
+    } catch (err) {
+      console.error('Failed to fetch tasks:', err);
+      setError('Failed to load tasks.');
+      setTasks([]); // Clear tasks on error
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Видаляє завдання за id
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
+  // Effect to fetch tasks when component mounts or auth state changes
+  useEffect(() => {
+    fetchTasks();
+  }, [isAuthenticated, token]); // Re-fetch if auth state changes
+
+  // Adds a new task to the backend and then updates local state
+  const addTask = async (taskData: Omit<Task, 'id' | 'completed' | 'userId'>) => {
+    if (!token) {
+      setError('Authentication token not found. Please log in.');
+      throw new Error('Authentication token not found. Please log in.');
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await axios.post(`${API_BASE_URL}/tasks`, 
+        taskData, 
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }
+      );
+      // Assuming the backend returns the created task with its ID
+      // setTasks(prev => [...prev, response.data]); // Option 1: Add directly if backend returns full task
+      await fetchTasks(); // Option 2: Re-fetch all tasks to ensure consistency
+    } catch (err: any) {
+      console.error('Failed to add task:', err);
+      let errorMessage = 'Failed to add task.';
+      if (axios.isAxiosError(err) && err.response && err.response.data) {
+        // Try to get a more specific error message from backend
+        errorMessage = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+      }
+      setError(errorMessage);
+      throw new Error(errorMessage); // Re-throw to be caught by the calling component
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Перемикає статус виконання завдання
-  const toggleTaskStatus = (id: string) => {
+  // Deletes a task by id (placeholder for backend integration)
+  const deleteTask = async (id: string) => {
+    // TODO: Implement backend call for deleting task
+    console.log('deleteTask called for id:', id);
+    setTasks(prev => prev.filter(task => task.id !== id)); // Keep local update for now
+  };
+
+  // Toggles the completion status of a task (placeholder for backend integration)
+  const toggleTaskStatus = async (id: string) => {
+    // TODO: Implement backend call for updating task status
+    console.log('toggleTaskStatus called for id:', id);
     setTasks(prev =>
       prev.map(t =>
         t.id === id ? { ...t, completed: !t.completed } : t
       )
-    );
+    ); // Keep local update for now
   };
 
-  return { tasks, addTask, deleteTask, toggleTaskStatus };
+  return { tasks, addTask, deleteTask, toggleTaskStatus, fetchTasks, loading, error };
 };
 
 export default useTasks;

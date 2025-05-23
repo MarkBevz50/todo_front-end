@@ -12,17 +12,25 @@ import TaskForm from '../components/TaskForm';
 import TaskCard from '../components/TaskCard'; 
 import '../styles/main.scss';
 import type { Task } from '../hooks/useTasks'; 
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Removed useNavigate
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 
 const Home: React.FC = () => {
   const { tasks, addTask, deleteTask, toggleTaskStatus } = useTasks(); 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(2025, 5, 20)); 
   const [showTaskForm, setShowTaskForm] = useState(false); 
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Added isAuthenticated state
+  const { isAuthenticated, user, logout, authLoading } = useAuth(); // Get auth state and functions
+  // const navigate = useNavigate(); // Removed useNavigate as it's unused
 
-  const handleAddTask = (taskData: Omit<Task, 'id' | 'completed'>) => {
-    addTask(taskData);
-    setShowTaskForm(false); 
+  const handleAddTask = async (taskData: Omit<Task, 'id' | 'completed'>) => { // Made async
+    // addTask(taskData); // This will be handled by the hook now
+    try {
+      await addTask(taskData); // Call the async addTask from the hook
+      setShowTaskForm(false);
+    } catch (error) {
+      console.error("Failed to add task:", error);
+      // Optionally, show an error message to the user
+    }
   };
 
   const handleDateSelect = (date: Date) => {
@@ -38,6 +46,14 @@ const Home: React.FC = () => {
       title: task.title,
       color: task.completed ? '#4caf50' : '#f44336', // Example: green for completed, red for pending
     }));
+
+  if (authLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Typography>Loading...</Typography> {/* Or a spinner component */}
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
@@ -66,9 +82,18 @@ const Home: React.FC = () => {
           FocusFlow
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}> 
-          {isAuthenticated && <Button sx={{ color: '#333333' }}>Profile</Button>} {/* Conditionally render Profile button */}
-          <Button sx={{ color: '#333333' }}>About Us</Button> {/* Changed color */}
-          <Button component={Link} to="/signup" variant="outlined" color="primary">Sign Up</Button> 
+          {isAuthenticated ? (
+            <>
+              {user && <Typography sx={{ color: '#333333', alignSelf: 'center' }}>{user.email}</Typography>}
+              <Button sx={{ color: '#333333' }} onClick={logout}>Logout</Button>
+            </>
+          ) : (
+            <>
+              <Button component={Link} to="/login" sx={{ color: '#333333' }}>Login</Button>
+              <Button component={Link} to="/signup" variant="outlined" color="primary">Sign Up</Button>
+            </>
+          )}
+          <Button sx={{ color: '#333333' }}>About Us</Button>
         </Box>
       </Box>
 

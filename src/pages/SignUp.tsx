@@ -1,22 +1,62 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, Button, Container, Paper } from '@mui/material';
-import { Link } from 'react-router-dom'; // Assuming you'll use React Router for navigation
+import { Box, Typography, TextField, Button, Container, Paper, Alert, CircularProgress } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom'; // Assuming you'll use React Router for navigation
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:5134/api';
 
 const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    // Handle sign-up logic here
-    console.log('Signing up with:', { email, password });
-    setError('');
+
+    setLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/auth/signup`, {
+        email,
+        password,
+        confirmPassword, // Added confirmPassword
+      });
+      setSuccessMessage('Sign up successful! Redirecting to login...');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response) {
+        // Handle API errors (e.g., validation errors from backend)
+        if (err.response.data && typeof err.response.data === 'string') {
+          setError(err.response.data);
+        } else if (err.response.data && err.response.data.errors) {
+          // Example: ASP.NET Core Identity error format
+          const messages = Object.values(err.response.data.errors).flat();
+          setError(messages.join('\n'));
+        } else {
+          setError('Sign up failed. Please try again.');
+        }
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+      console.error('Sign up error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -25,6 +65,16 @@ const SignUp: React.FC = () => {
         <Typography component="h1" variant="h5" color="primary" fontWeight="bold">
           Sign Up
         </Typography>
+        {successMessage && (
+          <Alert severity="success" sx={{ width: '100%', mt: 2 }}>
+            {successMessage}
+          </Alert>
+        )}
+        {error && (
+          <Alert severity="error" sx={{ width: '100%', mt: 2, whiteSpace: 'pre-line' }}>
+            {error}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
           <TextField
             margin="normal"
@@ -38,6 +88,7 @@ const SignUp: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             variant="outlined"
+            disabled={loading}
           />
           <TextField
             margin="normal"
@@ -51,6 +102,7 @@ const SignUp: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             variant="outlined"
+            disabled={loading}
           />
           <TextField
             margin="normal"
@@ -64,19 +116,22 @@ const SignUp: React.FC = () => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             variant="outlined"
+            disabled={loading}
           />
-          {error && (
+          {/* This specific error display for password mismatch can be removed if general Alert handles it well enough */}
+          {/* {error && !successMessage && ( // Only show this if it's not a success message context
             <Typography color="error" variant="body2" sx={{ mt: 1 }}>
               {error}
             </Typography>
-          )}
+          )} */}
           <Button
             type="submit"
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2, bgcolor: '#2563eb' }}
+            disabled={loading}
           >
-            Sign Up
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign Up'}
           </Button>
           <Box textAlign="center">
             <Typography variant="body2">
