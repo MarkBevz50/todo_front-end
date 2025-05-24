@@ -211,10 +211,20 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, events 
                   height: 8, 
                   borderRadius: '50%', 
                   bgcolor: event.color, 
-                  mr: 1 
+                  mr: 1, 
+                  flexShrink: 0 // Prevent dot from shrinking
                 }} 
               />
-              <Typography variant="caption" sx={{ color: event.color }}>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: event.color,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  // maxWidth: 'calc(100% - 20px)' // Adjust if necessary, considering the dot and padding
+                }}
+              >
                 {event.title}
               </Typography>
             </Box>

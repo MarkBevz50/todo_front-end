@@ -19,6 +19,7 @@ interface UseTasksResult {
   addTask: (taskData: Omit<Task, 'id' | 'completed' | 'userId'>) => Promise<void>; // Modified to be async
   deleteTask: (id: string) => Promise<void>; // Will be async
   toggleTaskStatus: (id: string) => Promise<void>; // Will be async
+  updateTask: (id: string, taskData: Omit<Task, 'id' | 'userId' | 'completed'>) => Promise<void>; // Added updateTask
   fetchTasks: () => Promise<void>; // Added fetchTasks
   loading: boolean;
   error: string | null;
@@ -89,11 +90,59 @@ const useTasks = (): UseTasksResult => {
     }
   };
 
-  // Deletes a task by id (placeholder for backend integration)
+  // Updates an existing task on the backend and then updates local state
+  const updateTask = async (id: string, taskData: Omit<Task, 'id' | 'userId' | 'completed'>) => {
+    if (!token) {
+      setError('Authentication token not found. Please log in.');
+      throw new Error('Authentication token not found. Please log in.');
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await axios.put(`${API_BASE_URL}/tasks/${id}`, 
+        taskData, 
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }
+      );
+      await fetchTasks(); // Re-fetch all tasks to ensure consistency
+    } catch (err: any) {
+      console.error('Failed to update task:', err);
+      let errorMessage = 'Failed to update task.';
+      if (axios.isAxiosError(err) && err.response && err.response.data) {
+        errorMessage = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+      }
+      setError(errorMessage);
+      throw new Error(errorMessage); // Re-throw to be caught by the calling component
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Deletes a task by id
   const deleteTask = async (id: string) => {
-    // TODO: Implement backend call for deleting task
-    console.log('deleteTask called for id:', id);
-    setTasks(prev => prev.filter(task => task.id !== id)); // Keep local update for now
+    if (!token) {
+      setError('Authentication token not found. Please log in.');
+      throw new Error('Authentication token not found. Please log in.');
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await axios.delete(`${API_BASE_URL}/tasks/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      await fetchTasks(); // Re-fetch all tasks to ensure consistency
+    } catch (err: any) {
+      console.error('Failed to delete task:', err);
+      let errorMessage = 'Failed to delete task.';
+      if (axios.isAxiosError(err) && err.response && err.response.data) {
+        errorMessage = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+      }
+      setError(errorMessage);
+      throw new Error(errorMessage); // Re-throw to be caught by the calling component
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Toggles the completion status of a task (placeholder for backend integration)
@@ -107,7 +156,7 @@ const useTasks = (): UseTasksResult => {
     ); // Keep local update for now
   };
 
-  return { tasks, addTask, deleteTask, toggleTaskStatus, fetchTasks, loading, error };
+  return { tasks, addTask, deleteTask, toggleTaskStatus, updateTask, fetchTasks, loading, error };
 };
 
 export default useTasks;

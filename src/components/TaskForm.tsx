@@ -7,14 +7,28 @@ import CloseIcon from '@mui/icons-material/Close';
 import type { Task } from '../hooks/useTasks'; // Import Task type
 
 interface TaskFormProps {
-  onAddTask: (task: Omit<Task, 'id' | 'completed'>) => void; // Changed prop name and signature
+  onAddTask: (task: Omit<Task, 'id' | 'completed' | 'userId'>) => void;
+  onUpdateTask?: (id: string, task: Omit<Task, 'id' | 'completed' | 'userId'>) => void;
   onCancel?: () => void;
+  initialData?: Task | null; // Added initialData prop
 }
 
-const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onCancel }) => {
+const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onUpdateTask, onCancel, initialData }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
+
+  React.useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title);
+      setDescription(initialData.description || '');
+      setDeadline(initialData.deadline ? initialData.deadline.split('T')[0] : ''); // Format date for input
+    } else {
+      setTitle('');
+      setDescription('');
+      setDeadline('');
+    }
+  }, [initialData]);
 
   const getTodayDateString = () => {
     const today = new Date();
@@ -27,10 +41,13 @@ const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onCancel }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    onAddTask({ title, description, deadline }); // Use onAddTask
-    setTitle('');
-    setDescription('');
-    setDeadline('');
+    const taskData = { title, description, deadline };
+    if (initialData && onUpdateTask) {
+      onUpdateTask(initialData.id, taskData);
+    } else {
+      onAddTask(taskData);
+    }
+    // Resetting form fields is handled by useEffect or onCancel
   };
 
   const formatDate = (date: string) => {
@@ -46,7 +63,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onCancel }) => {
   return (
     <Paper elevation={0} sx={{ p: 3, borderRadius: 2 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6" fontWeight={600}>New Task</Typography>
+        <Typography variant="h6" fontWeight={600}>{initialData ? 'Edit Task' : 'New Task'}</Typography>
         {onCancel && (
           <IconButton size="small" onClick={onCancel}>
             <CloseIcon />
@@ -137,7 +154,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onCancel }) => {
               textTransform: 'none'
             }}
           >
-            Add Task
+            {initialData ? 'Save Changes' : 'Add Task'}
           </Button>
         </Box>
       </Box>

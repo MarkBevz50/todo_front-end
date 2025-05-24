@@ -6,31 +6,61 @@ import {
   Paper,
   Container,
   Button,
+  Alert,
 } from '@mui/material';
 import Calendar from '../components/Calendar';
 import TaskForm from '../components/TaskForm'; 
 import TaskCard from '../components/TaskCard'; 
 import '../styles/main.scss';
 import type { Task } from '../hooks/useTasks'; 
-import { Link } from 'react-router-dom'; // Removed useNavigate
-import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+import { Link } from 'react-router-dom'; 
+import { useAuth } from '../contexts/AuthContext'; 
 
 const Home: React.FC = () => {
-  const { tasks, addTask, deleteTask, toggleTaskStatus } = useTasks(); 
+  const { tasks, addTask, deleteTask, toggleTaskStatus, updateTask } = useTasks(); // Ensure updateTask is destructured
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(2025, 5, 20)); 
   const [showTaskForm, setShowTaskForm] = useState(false); 
-  const { isAuthenticated, user, logout, authLoading } = useAuth(); // Get auth state and functions
-  // const navigate = useNavigate(); // Removed useNavigate as it's unused
+  const [authNotification, setAuthNotification] = useState<string | null>(null);
+  const { isAuthenticated, user, logout, authLoading } = useAuth(); 
+  const [editingTask, setEditingTask] = useState<Task | null>(null); // State for the task being edited
 
-  const handleAddTask = async (taskData: Omit<Task, 'id' | 'completed'>) => { // Made async
-    // addTask(taskData); // This will be handled by the hook now
-    try {
-      await addTask(taskData); // Call the async addTask from the hook
+  const handleShowTaskForm = (taskToEdit?: Task) => {
+    if (!isAuthenticated) {
+      setAuthNotification("Будь ласка, увійдіть в систему, щоб створювати або редагувати завдання. Використовуйте кнопки Login або Sign Up у верхній частині сторінки.");
       setShowTaskForm(false);
+      setEditingTask(null);
+    } else {
+      setAuthNotification(null);
+      setEditingTask(taskToEdit || null); // Set task to edit, or null for new task
+      setShowTaskForm(true);
+    }
+  };
+
+  const handlePerformAddTask = async (taskData: Omit<Task, 'id' | 'completed' | 'userId'>) => {
+    try {
+      await addTask(taskData);
+      setShowTaskForm(false);
+      setEditingTask(null);
     } catch (error) {
       console.error("Failed to add task:", error);
       // Optionally, show an error message to the user
     }
+  };
+
+  const handlePerformUpdateTask = async (id: string, taskData: Omit<Task, 'id' | 'completed' | 'userId'>) => {
+    try {
+      await updateTask(id, taskData);
+      setShowTaskForm(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error("Failed to update task:", error);
+      // Optionally, show an error message to the user
+    }
+  };
+
+  const handleCancelForm = () => {
+    setShowTaskForm(false);
+    setEditingTask(null);
   };
 
   const handleDateSelect = (date: Date) => {
@@ -113,10 +143,18 @@ const Home: React.FC = () => {
             <Typography variant="body1" color="text.secondary">
               Organize your to-dos, set deadlines, and achieve more with FocusFlow.
             </Typography>
-          </Box>
-        </Paper>
+          </Box>        </Paper>
 
-      
+        {authNotification && (
+          <Alert 
+            severity="warning" 
+            sx={{ mb: 2 }} 
+            onClose={() => setAuthNotification(null)}
+          >
+            {authNotification}
+          </Alert>
+        )}
+
         <Box sx={{ 
           mb: 3, 
           bgcolor: 'white', 
@@ -126,13 +164,14 @@ const Home: React.FC = () => {
         }}>
           {showTaskForm ? (
             <TaskForm 
-              onAddTask={handleAddTask} 
-              onCancel={() => setShowTaskForm(false)} 
-            />
-          ) : (
+              initialData={editingTask} // Pass the task to be edited (or null)
+              onAddTask={handlePerformAddTask} 
+              onUpdateTask={handlePerformUpdateTask} // Pass the update handler
+              onCancel={handleCancelForm} // Pass the cancel handler
+            />          ) : (
             <Button 
               variant="contained" 
-              onClick={() => setShowTaskForm(true)}
+              onClick={() => handleShowTaskForm()} // Call without args for new task
               sx={{ bgcolor: '#2563eb', width: '100%', py: 1.5 }}
             >
               Add New Task
@@ -154,6 +193,7 @@ const Home: React.FC = () => {
                   task={task} 
                   onDelete={deleteTask} 
                   onToggleComplete={toggleTaskStatus} 
+                  onEdit={() => handleShowTaskForm(task)} // Pass the specific task to edit
                 />
               ))
             )}
