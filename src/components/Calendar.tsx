@@ -193,44 +193,9 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, events 
                   }}
                 />
               )}
-            </Box>
-          );
+            </Box>          );
         })}
       </Box>
-      
-      {/* Events/Deadlines */}
-      {events.length > 0 && (
-        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid #f0f0f0' }}>
-          {events.map((event, index) => (
-            <Box key={index} display="flex" alignItems="center" mb={0.5}>
-              <Box 
-                component="span" 
-                display="inline-block" 
-                sx={{ 
-                  width: 8, 
-                  height: 8, 
-                  borderRadius: '50%', 
-                  bgcolor: event.color, 
-                  mr: 1, 
-                  flexShrink: 0 // Prevent dot from shrinking
-                }} 
-              />
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: event.color,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  // maxWidth: 'calc(100% - 20px)' // Adjust if necessary, considering the dot and padding
-                }}
-              >
-                {event.title}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      )}
     </Box>
   );
 };

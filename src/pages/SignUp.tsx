@@ -9,19 +9,58 @@ const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); // General error for API responses or password mismatch
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const validateEmail = (email: string): boolean => {
+    if (!email) {
+      setEmailError('Email is required.');
+      return false;
+    }
+    // Basic email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError('Invalid email format.');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const validatePassword = (password: string): boolean => {
+    if (!password) {
+      setPasswordError('Password is required.');
+      return false;
+    }
+    if (password.length <= 6) {
+      setPasswordError('Password must be longer than 6 characters.');
+      return false;
+    }
+    setPasswordError('');
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(''); // Clear general error
     setSuccessMessage('');
 
+    // Perform client-side validation
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match'); // Keep this for confirm password
+      // It might be better to have a separate confirmPasswordError state if more granular control is needed
       return;
+    }
+
+    if (!isEmailValid || !isPasswordValid) {
+      return; // Stop submission if client-side validation fails
     }
 
     setLoading(true);
@@ -70,7 +109,7 @@ const SignUp: React.FC = () => {
             {successMessage}
           </Alert>
         )}
-        {error && (
+        {error && !successMessage && ( // Show general error if no success message
           <Alert severity="error" sx={{ width: '100%', mt: 2, whiteSpace: 'pre-line' }}>
             {error}
           </Alert>
@@ -86,7 +125,13 @@ const SignUp: React.FC = () => {
             autoComplete="email"
             autoFocus
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) validateEmail(e.target.value); // Re-validate on change if there was an error
+            }}
+            onBlur={() => validateEmail(email)} // Validate on blur
+            error={!!emailError}
+            helperText={emailError}
             variant="outlined"
             disabled={loading}
           />
@@ -100,7 +145,13 @@ const SignUp: React.FC = () => {
             id="password"
             autoComplete="new-password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordError) validatePassword(e.target.value); // Re-validate on change if there was an error
+            }}
+            onBlur={() => validatePassword(password)} // Validate on blur
+            error={!!passwordError}
+            helperText={passwordError}
             variant="outlined"
             disabled={loading}
           />

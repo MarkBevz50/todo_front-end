@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useTasks from '../hooks/useTasks';
 import {
   Box,
@@ -7,6 +7,11 @@ import {
   Container,
   Button,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from '@mui/material';
 import Calendar from '../components/Calendar';
 import TaskForm from '../components/TaskForm'; 
@@ -18,15 +23,20 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Home: React.FC = () => {
   const { tasks, addTask, deleteTask, toggleTaskStatus, updateTask } = useTasks(); // Ensure updateTask is destructured
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2025, 5, 20)); 
-  const [showTaskForm, setShowTaskForm] = useState(false); 
-  const [authNotification, setAuthNotification] = useState<string | null>(null);
-  const { isAuthenticated, user, logout, authLoading } = useAuth(); 
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showTaskForm, setShowTaskForm] = useState(false);   const [authNotification, setAuthNotification] = useState<string | null>(null);  const { isAuthenticated, user, logout, authLoading } = useAuth(); 
   const [editingTask, setEditingTask] = useState<Task | null>(null); // State for the task being edited
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+
+  // useEffect to log tasks whenever they change
+  useEffect(() => {
+    console.log("Tasks updated:", tasks);
+  }, [tasks]);
 
   const handleShowTaskForm = (taskToEdit?: Task) => {
     if (!isAuthenticated) {
-      setAuthNotification("Будь ласка, увійдіть в систему, щоб створювати або редагувати завдання. Використовуйте кнопки Login або Sign Up у верхній частині сторінки.");
+      setAuthNotification("Please log in to create or edit tasks. Use the Login or Sign Up buttons at the top of the page.");
       setShowTaskForm(false);
       setEditingTask(null);
     } else {
@@ -62,12 +72,49 @@ const Home: React.FC = () => {
     setShowTaskForm(false);
     setEditingTask(null);
   };
+  const handleDeleteClick = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setTaskToDelete(task);
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (taskToDelete) {
+      try {
+        await deleteTask(taskToDelete.id);
+        setDeleteDialogOpen(false);
+        setTaskToDelete(null);
+      } catch (error) {
+        console.error("Failed to delete task:", error);
+        // Optionally, show an error message to the user
+      }
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setTaskToDelete(null);
+  };
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     console.log('Selected date:', date);
-    // todo: додати логіку для фільтрування завдань за обраною датою
   };
+
+  const filteredTasks = tasks.filter(task => {
+    if (!selectedDate) return true; // If no date is selected, show all tasks
+    if (!task.deadline) return true; // Always show tasks without a deadline
+
+    const taskDeadlineDate = new Date(task.deadline);
+    // Compare year, month, and day, ignoring time
+    return (
+      taskDeadlineDate.getFullYear() === selectedDate.getFullYear() &&
+      taskDeadlineDate.getMonth() === selectedDate.getMonth() &&
+      taskDeadlineDate.getDate() === selectedDate.getDate()
+    );
+  });
 
   const calendarEvents = tasks
     .filter(task => task.deadline)
@@ -177,21 +224,40 @@ const Home: React.FC = () => {
               Add New Task
             </Button>
           )}
-        </Box>
-
-        {/* Task List */}
-        <Box sx={{ display: 'flex', gap: 3 }}>
-          <Box sx={{ flex: 2 }}>
-            {tasks.length === 0 ? (
+        </Box>        {/* Task List */}
+        <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+          <Box sx={{ 
+            flex: 1, 
+            maxHeight: '460px', 
+            overflowY: 'auto',
+            pr: 1, // Add right padding to prevent content touching scrollbar
+            // Custom scrollbar styling
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: '#ffffff',
+              borderRadius: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: '#2563eb',
+              borderRadius: '4px',
+              '&:hover': {
+                backgroundColor: '#1d4ed8',
+              },
+            },
+            '&::-webkit-scrollbar-thumb:active': {
+              backgroundColor: '#1e40af',
+            },
+          }}>            {tasks.length === 0 ? (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
                 No tasks yet. Add your first task.
               </Typography>
-            ) : (
-              tasks.map(task => (
+            ) : (              filteredTasks.map(task => (
                 <TaskCard 
                   key={task.id} 
                   task={task} 
-                  onDelete={deleteTask} 
+                  onDelete={handleDeleteClick} 
                   onToggleComplete={toggleTaskStatus} 
                   onEdit={() => handleShowTaskForm(task)} // Pass the specific task to edit
                 />
@@ -199,7 +265,11 @@ const Home: React.FC = () => {
             )}
           </Box>
           {/* Calendar Component Wrapper */}
-          <Box sx={{ flex: 1, maxWidth: '300px' }}> 
+          <Box sx={{ 
+            flex: '0 0 280px', // Fixed width calendar
+            position: 'sticky',
+            top: '20px'
+          }}> 
             <Calendar 
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
@@ -208,6 +278,33 @@ const Home: React.FC = () => {
           </Box>
         </Box>
       </Container>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-task-dialog-title"
+        aria-describedby="delete-task-dialog-description"
+      >        <DialogTitle id="delete-task-dialog-title">
+          Підтвердити видалення
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-task-dialog-description">
+            {taskToDelete 
+              ? `Are you sure you want to delete the task "${taskToDelete.title}"? This action cannot be undone.` 
+              : "Are you sure you want to delete this task? This action cannot be undone."
+            }
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Скасувати
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
+            Видалити
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Footer */}
       <Box sx={{ 
@@ -218,7 +315,7 @@ const Home: React.FC = () => {
         fontSize: '0.875rem',
         bgcolor: 'white'
       }}>
-        FocusFlow © 2024 • Built for your productivity by Markiyan Bevz ^_^
+        FocusFlow © 2025 • Built for your productivity by Markiyan Bevz ^_^
       </Box>
     </Box>
   );

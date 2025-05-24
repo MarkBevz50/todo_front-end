@@ -14,70 +14,89 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete, onToggleComplete, onEdit }) => {
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return text.substring(0, maxLength) + '...';
+  };
+
+  const formatDate = (dateString: string) => {
+    return dateString.split('T')[0];
+  };
+
   return (
-    <Box
+    <Box // Main Card Container
       sx={{
         mb: 2,
         p: 2,
         borderRadius: 2,
         boxShadow: '0 2px 8px #e3e8f0',
         display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
+        alignItems: 'center', // Vertically align the two main groups (content and icons)
+        justifyContent: 'space-between', // Pushes (Checkbox + Text) away from (Icons)
         bgcolor: task.completed ? '#f0fdf4' : 'white',
-        borderLeft: task.completed ? '4px solid #22c55e' : '4px solid transparent'
+        borderLeft: task.completed ? '4px solid #22c55e' : '4px solid transparent',
       }}
     >
-      <Box display="flex" alignItems="flex-start" gap={1.5}>
+      {/* Group 1: Checkbox and Text. This group should grow and shrink. */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start', // Align checkbox (top) and text block (top)
+          gap: 1.5, // Space between checkbox and text block
+          flexGrow: 1, // Allows this group to take up available space
+          minWidth: 0, // Important for allowing shrinking and preventing overflow
+        }}
+      >
         <Checkbox
           checked={task.completed}
           onChange={() => onToggleComplete(task.id)}
           color="success"
-          sx={{ p: 0, mt: '2px' }}
+          sx={{ p: 0, mt: '2px' }} // Small top margin to align better with text baseline
         />
+        {/* Text content container. */}
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography
             variant="subtitle1"
             fontWeight={600}
-            sx={{ 
+            sx={{
               textDecoration: task.completed ? 'line-through' : 'none',
               color: task.completed ? 'text.secondary' : 'text.primary',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '300px',
+              wordBreak: 'break-word',
             }}
           >
-            {task.title}
+            {truncateText(task.title, 100)}
           </Typography>
           {task.deadline && (
             <Typography
               variant="caption"
               sx={{ display: 'flex', alignItems: 'center', mt: 0.5, color: task.completed ? 'text.secondary' : '#555555' }}
             >
-              <CalendarMonthIcon sx={{ fontSize: 16, mr: 0.5 }} /> {task.deadline}
+              <CalendarMonthIcon sx={{ fontSize: 16, mr: 0.5 }} /> {formatDate(task.deadline)}
             </Typography>
           )}
           {task.description && (
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: task.completed ? 'text.secondary' : '#555555', 
-                mt: 0.5, 
+            <Typography
+              variant="body2"
+              sx={{
+                color: task.completed ? 'text.secondary' : '#555555',
                 wordBreak: 'break-word',
-                maxWidth: 'calc(100% - 40px)' // Adjust based on icon buttons width if needed
+                mt: 0.5, // Add some margin if description exists
               }}
             >
-              {task.description}
+              {truncateText(task.description, 150)}
             </Typography>
           )}
         </Box>
       </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <IconButton onClick={() => onEdit(task)} color="primary" size="small">
+
+      {/* Group 2: Icons. This group should not shrink. */}
+      <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, ml: 1 }}>
+        <IconButton onClick={() => onEdit(task)} color="primary" sx={{ p: 0.5 }}>
           <EditIcon />
         </IconButton>
-        <IconButton onClick={() => onDelete(task.id)} color="error" size="small">
+        <IconButton onClick={() => onDelete(task.id)} color="error" sx={{ p: 0.5 }}>
           <DeleteIcon />
         </IconButton>
       </Box>

@@ -30,7 +30,6 @@ const useTasks = (): UseTasksResult => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { token, isAuthenticated } = useAuth(); // Get token and isAuthenticated
-
   // Fetch tasks from backend
   const fetchTasks = async () => {
     if (!isAuthenticated || !token) {
@@ -43,7 +42,12 @@ const useTasks = (): UseTasksResult => {
       const response = await axios.get(`${API_BASE_URL}/tasks`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      setTasks(response.data);
+      // Map backend response to frontend Task interface
+      const mappedTasks = response.data.map((task: any) => ({
+        ...task,
+        completed: task.isCompleted // Map isCompleted from backend to completed for frontend
+      }));
+      setTasks(mappedTasks);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
       setError('Failed to load tasks.');
@@ -144,16 +148,45 @@ const useTasks = (): UseTasksResult => {
       setLoading(false);
     }
   };
-
-  // Toggles the completion status of a task (placeholder for backend integration)
+  // Toggles the completion status of a task
   const toggleTaskStatus = async (id: string) => {
-    // TODO: Implement backend call for updating task status
-    console.log('toggleTaskStatus called for id:', id);
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      )
-    ); // Keep local update for now
+    if (!token) {
+      setError('Authentication token not found. Please log in.');
+      throw new Error('Authentication token not found. Please log in.');
+    }
+
+    const taskToToggle = tasks.find(t => t.id === id);
+    if (!taskToToggle) {
+      setError('Task not found.');
+      throw new Error('Task not found.');
+    }
+
+    const newCompletedStatus = !taskToToggle.completed;
+
+    setLoading(true);
+    setError(null);
+    try {
+      await axios.patch(`${API_BASE_URL}/tasks/${id}`, 
+        newCompletedStatus, // Send the boolean value directly
+        {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+        }
+      );
+      await fetchTasks(); // Re-fetch all tasks to ensure consistency with server state
+    } catch (err: any) {
+      console.error('Failed to toggle task status:', err);
+      let errorMessage = 'Failed to toggle task status.';
+      if (axios.isAxiosError(err) && err.response && err.response.data) {
+        errorMessage = err.response.data.message || err.response.data.title || JSON.stringify(err.response.data);
+      }
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return { tasks, addTask, deleteTask, toggleTaskStatus, updateTask, fetchTasks, loading, error };
