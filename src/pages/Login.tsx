@@ -11,14 +11,14 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+import { useAuth } from '../contexts/AuthContext'; 
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login, loading } = useAuth(); // Get login function and loading state from AuthContext
+  const { login, loading } = useAuth(); 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -29,10 +29,10 @@ const Login: React.FC = () => {
       return;
     }
 
-    const result = await login(email, password); // Call login from AuthContext
+    const result = await login(email, password); 
 
     if (result.success) {
-      navigate('/'); // Redirect to home page on successful login
+      navigate('/'); 
     } else {
       setError(result.error || 'Login failed. Please check your credentials or try again.');
     }
@@ -73,7 +73,7 @@ const Login: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             variant="outlined"
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            disabled={loading} // Use loading from AuthContext
+            disabled={loading} 
           />
           <TextField
             margin="normal"
@@ -88,9 +88,9 @@ const Login: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             variant="outlined"
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-            disabled={loading} // Use loading from AuthContext
+            disabled={loading} 
           />
-          {/* Optional: Add "Forgot password?" link here */}
+          {/* TODO Optional: Add "Forgot password?" link here */}
           <Button
             type="submit"
             fullWidth
@@ -106,7 +106,7 @@ const Login: React.FC = () => {
                 bgcolor: '#1d4ed8',
               },
             }}
-            disabled={loading} // Use loading from AuthContext
+            disabled={loading} 
           >
             {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
           </Button>

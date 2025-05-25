@@ -46,21 +46,21 @@ const SignUp: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); // Clear general error
+    setError(''); 
     setSuccessMessage('');
 
-    // Perform client-side validation
+    
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match'); // Keep this for confirm password
-      // It might be better to have a separate confirmPasswordError state if more granular control is needed
+      setError('Passwords do not match'); 
+      
       return;
     }
 
     if (!isEmailValid || !isPasswordValid) {
-      return; // Stop submission if client-side validation fails
+      return; 
     }
 
     setLoading(true);
@@ -68,7 +68,7 @@ const SignUp: React.FC = () => {
       await axios.post(`${API_BASE_URL}/auth/signup`, {
         email,
         password,
-        confirmPassword, // Added confirmPassword
+        confirmPassword, 
       });
       setSuccessMessage('Sign up successful! Redirecting to login...');
       setEmail('');
@@ -79,11 +79,11 @@ const SignUp: React.FC = () => {
       }, 2000);
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response) {
-        // Handle API errors (e.g., validation errors from backend)
+        // Handling API errors 
         if (err.response.data && typeof err.response.data === 'string') {
           setError(err.response.data);
         } else if (err.response.data && err.response.data.errors) {
-          // Example: ASP.NET Core Identity error format
+          
           const messages = Object.values(err.response.data.errors).flat();
           setError(messages.join('\n'));
         } else {
@@ -109,7 +109,7 @@ const SignUp: React.FC = () => {
             {successMessage}
           </Alert>
         )}
-        {error && !successMessage && ( // Show general error if no success message
+        {error && !successMessage && ( // general error if no success message
           <Alert severity="error" sx={{ width: '100%', mt: 2, whiteSpace: 'pre-line' }}>
             {error}
           </Alert>
@@ -127,9 +127,9 @@ const SignUp: React.FC = () => {
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              if (emailError) validateEmail(e.target.value); // Re-validate on change if there was an error
+              if (emailError) validateEmail(e.target.value); 
             }}
-            onBlur={() => validateEmail(email)} // Validate on blur
+            onBlur={() => validateEmail(email)} 
             error={!!emailError}
             helperText={emailError}
             variant="outlined"
@@ -147,9 +147,9 @@ const SignUp: React.FC = () => {
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
-              if (passwordError) validatePassword(e.target.value); // Re-validate on change if there was an error
+              if (passwordError) validatePassword(e.target.value); 
             }}
-            onBlur={() => validatePassword(password)} // Validate on blur
+            onBlur={() => validatePassword(password)} 
             error={!!passwordError}
             helperText={passwordError}
             variant="outlined"
@@ -169,12 +169,8 @@ const SignUp: React.FC = () => {
             variant="outlined"
             disabled={loading}
           />
-          {/* This specific error display for password mismatch can be removed if general Alert handles it well enough */}
-          {/* {error && !successMessage && ( // Only show this if it's not a success message context
-            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
-              {error}
-            </Typography>
-          )} */}
+          {/*  */}
+          {/*  */}
           <Button
             type="submit"
             fullWidth
@@ -190,7 +186,7 @@ const SignUp: React.FC = () => {
               {/* <Link to="/login" style={{ color: '#2563eb', textDecoration: 'none' }}>
                 Sign In
               </Link> */}
-              {/* Replace with your actual sign-in route */}
+              {/*  */}
                <Button component={Link} to="/login" sx={{ color: '#2563eb', textTransform: 'none', padding: 0 }}>Sign In</Button>
             </Typography>
           </Box>
