@@ -1,16 +1,16 @@
-// TaskCard.tsx
+
 import React from 'react';
 import { Box, Typography, IconButton, Checkbox } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit'; // Added EditIcon
+import EditIcon from '@mui/icons-material/Edit'; 
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import type { Task } from '../hooks/useTasks'; // Import Task type using type-only import
+import type { Task } from '../hooks/useTasks'; 
 
 interface TaskCardProps {
-  task: Task; // Use the imported Task type
-  onDelete: (id: string) => void; // Changed id type to string
-  onToggleComplete: (id: string) => void; // Changed id type to string
-  onEdit: (task: Task) => void; // Added onEdit prop
+  task: Task; 
+  onDelete: (id: string) => void; 
+  onToggleComplete: (id: string) => void; 
+  onEdit: (task: Task) => void; 
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete, onToggleComplete, onEdit }) => {
@@ -26,15 +26,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete, onToggleComplete, o
   };
 
   return (
-    <Box // Main Card Container
+    <Box 
       sx={{
         mb: 2,
         p: 2,
         borderRadius: 2,
         boxShadow: '0 2px 8px #e3e8f0',
         display: 'flex',
-        alignItems: 'center', // Vertically align the two main groups (content and icons)
-        justifyContent: 'space-between', // Pushes (Checkbox + Text) away from (Icons)
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
         bgcolor: task.completed ? '#f0fdf4' : 'white',
         borderLeft: task.completed ? '4px solid #22c55e' : '4px solid transparent',
       }}
@@ -43,17 +43,17 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete, onToggleComplete, o
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'flex-start', // Align checkbox (top) and text block (top)
-          gap: 1.5, // Space between checkbox and text block
-          flexGrow: 1, // Allows this group to take up available space
-          minWidth: 0, // Important for allowing shrinking and preventing overflow
+          alignItems: 'flex-start', 
+          gap: 1.5, 
+          flexGrow: 1, 
+          minWidth: 0, 
         }}
       >
         <Checkbox
           checked={task.completed}
           onChange={() => onToggleComplete(task.id)}
           color="success"
-          sx={{ p: 0, mt: '2px' }} // Small top margin to align better with text baseline
+          sx={{ p: 0, mt: '2px' }} 
         />
         {/* Text content container. */}
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
@@ -82,7 +82,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete, onToggleComplete, o
               sx={{
                 color: task.completed ? 'text.secondary' : '#555555',
                 wordBreak: 'break-word',
-                mt: 0.5, // Add some margin if description exists
+                mt: 0.5, 
               }}
             >
               {truncateText(task.description, 150)}

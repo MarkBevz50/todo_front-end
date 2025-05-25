@@ -4,13 +4,13 @@ import { Box, TextField, Button, Paper, Typography, IconButton } from '@mui/mate
 import AddIcon from '@mui/icons-material/Add';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import CloseIcon from '@mui/icons-material/Close';
-import type { Task } from '../hooks/useTasks'; // Import Task type
+import type { Task } from '../hooks/useTasks'; 
 
 interface TaskFormProps {
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'userId'>) => void;
   onUpdateTask?: (id: string, task: Omit<Task, 'id' | 'completed' | 'userId'>) => void;
   onCancel?: () => void;
-  initialData?: Task | null; // Added initialData prop
+  initialData?: Task | null; 
 }
 
 const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onUpdateTask, onCancel, initialData }) => {
@@ -22,7 +22,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onUpdateTask, onCancel, 
     if (initialData) {
       setTitle(initialData.title);
       setDescription(initialData.description || '');
-      setDeadline(initialData.deadline ? initialData.deadline.split('T')[0] : ''); // Format date for input
+      setDeadline(initialData.deadline ? initialData.deadline.split('T')[0] : ''); 
     } else {
       setTitle('');
       setDescription('');
@@ -47,7 +47,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onAddTask, onUpdateTask, onCancel, 
     } else {
       onAddTask(taskData);
     }
-    // Resetting form fields is handled by useEffect or onCancel
+    
   };
 
   const formatDate = (date: string) => {

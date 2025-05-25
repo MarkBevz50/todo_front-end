@@ -26,17 +26,17 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, events 
   const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const today = new Date();
   
-  // Get month details
+ 
   const year = displayedMonth.getFullYear();
   const month = displayedMonth.getMonth();
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
   const daysInMonth = lastDayOfMonth.getDate();
   
-  // Calculate first day of the week (0 = Sunday, 6 = Saturday)
+  
   const firstDayOfWeek = firstDayOfMonth.getDay();
   
-  // Get days from previous month to display
+  
   const prevMonthDays = [];
   const daysFromPrevMonth = firstDayOfWeek;
   const prevMonth = new Date(year, month, 0);
@@ -50,7 +50,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, events 
     });
   }
   
-  // Current month days
+  
   const currentMonthDays = [];
   for (let i = 1; i <= daysInMonth; i++) {
     currentMonthDays.push({
@@ -60,7 +60,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, events 
     });
   }
   
-  // Next month days to fill the grid
+  
   const nextMonthDays = [];
   const totalDaysDisplayed = prevMonthDays.length + currentMonthDays.length;
   const daysFromNextMonth = 42 - totalDaysDisplayed; // 6 rows * 7 days = 42
@@ -73,14 +73,14 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, events 
     });
   }
   
-  // Combine all days
+  
   const allDays = [...prevMonthDays, ...currentMonthDays, ...nextMonthDays];
   
-  // Format month name
+  
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const formattedMonth = `${monthNames[month]} ${year}`;
   
-  // Navigate to previous month
+  
   const goToPrevMonth = () => {
     setDisplayedMonth(new Date(year, month - 1, 1));
   };
@@ -165,12 +165,12 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateSelect, events 
                 borderRadius: '50%',
                 bgcolor: isTodayDate ? '#2563eb' : isSelectedDay ? '#90caf9' : 'transparent',
                 color: isTodayDate 
-                  ? '#FFFFFF'  // Explicit white for today
+                  ? '#FFFFFF'  
                   : isSelectedDay 
-                    ? '#333333' // Darker text for selected day (not today)
+                    ? '#333333' 
                     : isCurrentMonth 
-                      ? 'text.primary' // Default for other current month days
-                      : '#CCCCCC',    // Lighter grey for other month days (was #ccc)
+                      ? 'text.primary' 
+                      : '#CCCCCC',    
                 cursor: isCurrentMonth ? 'pointer' : 'default',
                 fontWeight: isTodayDate || isSelectedDay ? 500 : 400,
                 position: 'relative',

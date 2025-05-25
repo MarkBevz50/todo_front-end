@@ -22,14 +22,14 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext'; 
 
 const Home: React.FC = () => {
-  const { tasks, addTask, deleteTask, toggleTaskStatus, updateTask } = useTasks(); // Ensure updateTask is destructured
+  const { tasks, addTask, deleteTask, toggleTaskStatus, updateTask } = useTasks(); 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showTaskForm, setShowTaskForm] = useState(false);   const [authNotification, setAuthNotification] = useState<string | null>(null);  const { isAuthenticated, user, logout, authLoading } = useAuth(); 
-  const [editingTask, setEditingTask] = useState<Task | null>(null); // State for the task being edited
+  const [editingTask, setEditingTask] = useState<Task | null>(null); 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
-  // useEffect to log tasks whenever they change
+  
   useEffect(() => {
     console.log("Tasks updated:", tasks);
   }, [tasks]);
@@ -41,7 +41,7 @@ const Home: React.FC = () => {
       setEditingTask(null);
     } else {
       setAuthNotification(null);
-      setEditingTask(taskToEdit || null); // Set task to edit, or null for new task
+      setEditingTask(taskToEdit || null); 
       setShowTaskForm(true);
     }
   };
@@ -53,7 +53,7 @@ const Home: React.FC = () => {
       setEditingTask(null);
     } catch (error) {
       console.error("Failed to add task:", error);
-      // Optionally, show an error message to the user
+      
     }
   };
 
@@ -64,7 +64,7 @@ const Home: React.FC = () => {
       setEditingTask(null);
     } catch (error) {
       console.error("Failed to update task:", error);
-      // Optionally, show an error message to the user
+      
     }
   };
 
@@ -88,7 +88,7 @@ const Home: React.FC = () => {
         setTaskToDelete(null);
       } catch (error) {
         console.error("Failed to delete task:", error);
-        // Optionally, show an error message to the user
+        
       }
     }
   };
@@ -104,11 +104,11 @@ const Home: React.FC = () => {
   };
 
   const filteredTasks = tasks.filter(task => {
-    if (!selectedDate) return true; // If no date is selected, show all tasks
-    if (!task.deadline) return true; // Always show tasks without a deadline
+    if (!selectedDate) return true; 
+    if (!task.deadline) return true; 
 
     const taskDeadlineDate = new Date(task.deadline);
-    // Compare year, month, and day, ignoring time
+    
     return (
       taskDeadlineDate.getFullYear() === selectedDate.getFullYear() &&
       taskDeadlineDate.getMonth() === selectedDate.getMonth() &&
@@ -121,7 +121,7 @@ const Home: React.FC = () => {
     .map(task => ({
       date: new Date(task.deadline!),
       title: task.title,
-      color: task.completed ? '#4caf50' : '#f44336', // Example: green for completed, red for pending
+      color: task.completed ? '#4caf50' : '#f44336', 
     }));
 
   if (authLoading) {
@@ -230,8 +230,8 @@ const Home: React.FC = () => {
             flex: 1, 
             maxHeight: '460px', 
             overflowY: 'auto',
-            pr: 1, // Add right padding to prevent content touching scrollbar
-            // Custom scrollbar styling
+            pr: 1, 
+            
             '&::-webkit-scrollbar': {
               width: '8px',
             },
@@ -259,14 +259,14 @@ const Home: React.FC = () => {
                   task={task} 
                   onDelete={handleDeleteClick} 
                   onToggleComplete={toggleTaskStatus} 
-                  onEdit={() => handleShowTaskForm(task)} // Pass the specific task to edit
+                  onEdit={() => handleShowTaskForm(task)} 
                 />
               ))
             )}
           </Box>
           {/* Calendar Component Wrapper */}
           <Box sx={{ 
-            flex: '0 0 280px', // Fixed width calendar
+            flex: '0 0 280px', 
             position: 'sticky',
             top: '20px'
           }}> 
